@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+
+<head th:insert="~{common :: commonHead}">
+    <title>Product Manager</title>
+</head>
+
+<body>
+<div class="container">
+    <h1 class="mt-5">Product List</h1>
+
+    <!-- 로그인 상태/권한별 상단 메뉴 -->
+    <div class="mb-3">
+        <span sec:authorize="isAuthenticated()">
+            환영합니다, <b sec:authentication="name"></b>님!
+            <a th:href="@{/logout}" class="btn btn-secondary btn-sm">로그아웃</a>
+        </span>
+        <span sec:authorize="!isAuthenticated()">
+            <a th:href="@{/login}" class="btn btn-primary btn-sm">로그인</a>
+            <a th:href="@{/signup}" class="btn btn-success btn-sm">회원가입</a>
+        </span>
+    </div>
+
+    <!-- ADMIN만 보이는 “전체 사용자 보기” 버튼 -->
+    <div class="mb-3" sec:authorize="hasRole('ADMIN')">
+        <a th:href="@{/admin/users}" class="btn btn-warning">전체 사용자 보기</a>
+    </div>
+
+    <!-- ROLE_ADMIN인 경우에만 New 버튼 노출 -->
+    <div sec:authorize="hasRole('ADMIN')">
+        <a class="btn btn-primary mb-3" th:href="@{/products/new}">Create New Product</a>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>Product ID</th>
+            <th>Name</th>
+            <th>Brand</th>
+            <th>Made In</th>
+            <th>Price</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="product : ${listProducts}">
+            <td th:text="${product.id}">Product ID</td>
+            <td th:text="${product.name}">Name</td>
+            <td th:text="${product.brand}">Brand</td>
+            <td th:text="${product.madeIn}">Made in</td>
+            <td th:text="${product.price}">Price</td>
+            <td>
+                <!-- ROLE_ADMIN인 경우에만 Edit/Delete 버튼 보여주기 -->
+                <a class="btn btn-primary btn-sm"
+                   th:href="@{'/products/edit/' + ${product.id}}"
+                   sec:authorize="hasRole('ADMIN')">Edit</a>
+                <a class="btn btn-danger btn-sm"
+                   th:href="@{'/products/delete/' + ${product.id}}"
+                   th:onclick="return confirm('정말 삭제하시겠습니까?')"
+                   sec:authorize="hasRole('ADMIN')">Delete</a>
+                <!-- ROLE_USER인 경우에는 단순히 조회만 가능하므로 빈 칸 노출하거나,
+                     "권한 없음" 메시지를 뿌릴 수도 있음 -->
+                <span sec:authorize="hasRole('USER') and !hasRole('ADMIN')">
+                    권한 없음
+                </span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Bootstrap JS fragment 삽입 -->
+<div th:insert="~{common :: commonScript}"></div>
+</body>
+</html>
